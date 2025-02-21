@@ -1,0 +1,12 @@
+[build]
+  command = "npm install" # Install dependencies
+  functions = "functions"  # Directory for Netlify Functions
+
+[dev]
+  command = "node app.js"  # Local development command
+  port = 8888
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
