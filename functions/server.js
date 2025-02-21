@@ -332,4 +332,5 @@ app.get("/discover/movie", async (req, res) => {
   return res.status(500).json({ error: "Failed to fetch discover movies" });
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// ** Correctly export the Express app for Netlify **
+module.exports.handler = serverless(app);
