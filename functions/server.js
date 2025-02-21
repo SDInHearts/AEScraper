@@ -3,6 +3,8 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const NodeCache = require("node-cache");
 
+const serverless = require("serverless-http");
+
 const app = express();
 const cache = new NodeCache({ stdTTL: 604800 }); // Cache for 7 days
 const proxy = `https://adultempire.lustycodes.workers.dev/?url=`;
