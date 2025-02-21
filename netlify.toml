@@ -1,10 +1,6 @@
 [build]
-  command = "npm install" # Install dependencies
-  functions = "functions"  # Directory for Netlify Functions
-
-[dev]
-  command = "node app.js"  # Local development command
-  port = 8888
+  command = "npm install"
+  functions = "functions"
 
 [[redirects]]
   from = "/*"
