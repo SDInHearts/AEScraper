@@ -325,6 +325,24 @@ const getDiscoverMovies = async (page = 1) => {
 //   return res.status(500).json({ error: "Failed to scrape movie data" });
 // });
 
+const getConfiguration = async () => {
+  try {
+
+    const images = [];
+
+      const base_url = "https://imgs1cdn.adultempire.com/products/0";
+      const secure_base_url = "https://imgs1cdn.adultempire.com/products/0";
+
+    images.push({ base_url, secure_base_url });
+
+    const Configuration = { images };
+    return Configuration;
+  } catch (error) {
+    console.error("Error getting Configuration:", error);
+    return null;
+  }
+};
+
 // Route using URL parameter
 app.get("/movie/:id", async (req, res) => {
   const { id } = req.params;
@@ -359,5 +377,12 @@ app.get("/discover/movie", async (req, res) => {
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch discover movies" });
 });
+
+app.get("/configuration", async (req, res) => {
+  const result = await getConfiguration();
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch configuration" });
+});
+
 // ** Correctly export the Express app for Netlify **
 module.exports.handler = serverless(app);
