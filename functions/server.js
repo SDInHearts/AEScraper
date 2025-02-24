@@ -423,5 +423,11 @@ app.get("/configuration", async (req, res) => {
   return res.status(500).json({ error: "Failed to fetch configuration" });
 });
 
+app.get("/genre/movie/list", async (req, res) => {
+  const result = await getMovieGenreList();
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch Movie Genre List" });
+});
+
 // ** Correctly export the Express app for Netlify **
 module.exports.handler = serverless(app);
