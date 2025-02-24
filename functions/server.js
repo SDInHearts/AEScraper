@@ -313,18 +313,6 @@ const getDiscoverMovies = async (page = 1) => {
   }
 };
 
-
-// /movie?id=
-
-// app.get("/movie", async (req, res) => {
-//   const { id } = req.query;
-//   if (!id) return res.status(400).json({ error: "Movie ID is required" });
-
-//   const result = await getMovieInfo(id);
-//   if (result) return res.json(result);
-//   return res.status(500).json({ error: "Failed to scrape movie data" });
-// });
-
 const getConfiguration = async () => {
   try {
 
@@ -342,6 +330,57 @@ const getConfiguration = async () => {
     return null;
   }
 };
+
+const getMovieGenreList = async () => {
+  try {
+    const cachedData = cache.get("genre-list");
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/browse-porn-video-categories.html`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    // Extracting genres
+    const genres = [];
+
+    $('ul.cat-list li a').each((index, element) => {
+        const href = $(element).attr('href'); // Get the href attribute
+        const idMatch = href.match(/\/(\d+)\//); // Extract the numeric ID
+        const id = idMatch ? idMatch[1] : null;
+        const name = $(element).text().trim(); // Extract the category name
+
+        if (id && name) {
+            genres.push({ id, name });
+        }
+    });
+
+    // Movie data object
+    const creditsData = {
+      genres,
+    };
+
+    // Store in cache
+    cache.set("genre-list", creditsData);
+    return { source: "live", ...creditsData };
+  } catch (error) {
+    console.error("Scraping error:", error);
+    return null;
+  }
+};
+
+
+// /movie?id=
+
+// app.get("/movie", async (req, res) => {
+//   const { id } = req.query;
+//   if (!id) return res.status(400).json({ error: "Movie ID is required" });
+
+//   const result = await getMovieInfo(id);
+//   if (result) return res.json(result);
+//   return res.status(500).json({ error: "Failed to scrape movie data" });
+// });
 
 // Route using URL parameter
 app.get("/movie/:id", async (req, res) => {
