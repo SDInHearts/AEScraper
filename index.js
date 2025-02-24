@@ -297,10 +297,7 @@ const getDiscoverMovies = async (page = 1) => {
 
       const movieID = href ? href.split("/")[1] : "";
       const poster_url = $(element).find(".boxcover-container img").attr("src") || "";
-      const poster_pathx = poster_url ? poster_url.split("/")[5] : "";
-      const poster_path = poster_pathx
-        ? `/${poster_pathx}`
-        : "";
+      const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
 
       results.push({ id: movieID, original_title: title, poster_path, poster_url, title });
     });
