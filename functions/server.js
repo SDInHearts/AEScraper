@@ -3,8 +3,6 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const NodeCache = require("node-cache");
 
-const serverless = require("serverless-http");
-
 const app = express();
 const cache = new NodeCache({ stdTTL: 604800 }); // Cache for 7 days
 const proxy = `https://adultempire.lustycodes.workers.dev/?url=`;
@@ -39,11 +37,14 @@ const getMovieInfo = async (movieID) => {
 
     // Extracting backdrop path
     const backdropPathStyle = $("#previewContainer").attr("style");
-    const backdrop_url = backdropPathStyle
+    const backdrop_urlx = backdropPathStyle
       ? backdropPathStyle.match(/background-image:\s*url\(([^)]+)\)/)[1]
       : "";
-    const backdrop_split = backdrop_url ? backdrop_url.split("/")[6] : "";
+    const backdrop_split = backdrop_urlx ? backdrop_urlx.split("/")[6] : "";
     const backdrop_path =
+      backdrop_split &&
+      `/${backdrop_split}`;
+    const backdrop_url =
       backdrop_split &&
       `https://caps1cdn.adultempire.com/o/1920/1080/${backdrop_split}`;
 
@@ -60,7 +61,9 @@ const getMovieInfo = async (movieID) => {
     const overview = $(".synopsis-content").text().trim();
 
     // Extracting poster path
-    const poster_path = $(".boxcover-container a").attr("data-href");
+    const poster_url = $(".boxcover-container a").attr("data-href");
+    
+    const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
 
     // Extracting runtime
     const runtimeElement = $('div.col-sm-4 ul.list-unstyled li').filter(function() {
@@ -83,11 +86,12 @@ const getMovieInfo = async (movieID) => {
     // Extracting backdrops
     const backdrops = [];
     $("div.col-xs-6 img.img-full-responsive").each((index, element) => {
-      const file_url = $(element).attr("data-bgsrc");
-      if (file_url) {
-        const file_url_split = file_url.split("/")[6] || "";
-        const file_path = `https://caps1cdn.adultempire.com/o/1920/1080/${file_url_split}`;
-        backdrops.push({ file_path });
+      const full_url = $(element).attr("data-bgsrc");
+      if (full_url) {
+        const file_url_split = full_url.split("/")[6] || "";
+        const file_path = `/${file_url_split}`;
+        const file_url = `https://caps1cdn.adultempire.com/o/1920/1080/${file_url_split}`;
+        backdrops.push({ file_path, file_url });
       }
     });
 
@@ -99,12 +103,16 @@ const getMovieInfo = async (movieID) => {
 
       const performerId = href ? href.split("/")[1] : "";
       const profile_path = performerId
+        ? `/${performerId}h.jpg`
+        : "";
+	  const profile_url = performerId
         ? `https://imgs1cdn.adultempire.com/actors/${performerId}h.jpg`
         : "";
       cast.push({
         id: performerId,
         name,
         profile_path,
+        profile_url,
         known_for_department: "Acting",
       });
     });
@@ -116,6 +124,9 @@ const getMovieInfo = async (movieID) => {
       const name = $(element).text().trim();
       const crewId = href ? href.split("/")[1] : "";
       const profile_path = crewId
+        ? `/${crewId}.jpg`
+        : "";
+      const profile_url = crewId
         ? `https://imgs1cdn.adultempire.com/studio/${crewId}.jpg`
         : "";
 
@@ -124,6 +135,7 @@ const getMovieInfo = async (movieID) => {
           id: crewId,
           name,
           profile_path,
+          profile_url,
           known_for_department: "Directing",
           department: "Directing",
         });
@@ -135,9 +147,11 @@ const getMovieInfo = async (movieID) => {
       id: movieID,
       title,
       backdrop_path,
+      backdrop_url,
       genres,
       overview,
       poster_path,
+      poster_url,
       runtime,
       vote_average,
       vote_count,
@@ -169,9 +183,10 @@ const getPersonInfo = async (personID) => {
 
     const name = $('h1').text().trim();
     const biography = $('.modal-body.text-md').html();
-    const profile_path = personID ? `https://imgs1cdn.adultempire.com/actors/${personID}h.jpg` : '';
+    const profile_path = personID ? `/${personID}h.jpg` : '';
+    const profile_url = personID ? `https://imgs1cdn.adultempire.com/actors/${personID}h.jpg` : '';
 
-    const personData = { id: personID, name, biography, profile_path };
+    const personData = { id: personID, name, biography, profile_path, profile_url };
     cache.set(cacheKey, personData);
     return { source: "live", ...personData };
   } catch (error) {
@@ -199,12 +214,16 @@ const getMovieCredits = async (movieID) => {
 
       const performerId = href ? href.split("/")[1] : "";
       const profile_path = performerId
+        ? `/${performerId}h.jpg`
+        : "";
+      const profile_url = performerId
         ? `https://imgs1cdn.adultempire.com/actors/${performerId}h.jpg`
         : "";
       cast.push({
         id: performerId,
         name,
         profile_path,
+        profile_url,
         known_for_department: "Acting",
       });
     });
@@ -216,6 +235,9 @@ const getMovieCredits = async (movieID) => {
       const name = $(element).text().trim();
       const crewId = href ? href.split("/")[1] : "";
       const profile_path = crewId
+        ? `/${crewId}.jpg`
+        : "";
+      const profile_url = crewId
         ? `https://imgs1cdn.adultempire.com/studio/${crewId}.jpg`
         : "";
 
@@ -224,6 +246,7 @@ const getMovieCredits = async (movieID) => {
           id: crewId,
           name,
           profile_path,
+          profile_url,
           known_for_department: "Directing",
           department: "Directing",
         });
@@ -273,9 +296,10 @@ const getDiscoverMovies = async (page = 1) => {
       const title = anchorTag.text().trim();
 
       const movieID = href ? href.split("/")[1] : "";
-      const poster_path = $(element).find(".boxcover-container img").attr("src") || "";
+      const poster_url = $(element).find(".boxcover-container img").attr("src") || "";
+      const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
 
-      results.push({ id: movieID, original_title: title, poster_path, title });
+      results.push({ id: movieID, original_title: title, poster_path, poster_url, title });
     });
 
     const discoverData = { page, results, total_results, total_pages };
@@ -333,6 +357,5 @@ app.get("/discover/movie", async (req, res) => {
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch discover movies" });
 });
-
 // ** Correctly export the Express app for Netlify **
 module.exports.handler = serverless(app);
