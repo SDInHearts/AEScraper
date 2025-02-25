@@ -313,6 +313,48 @@ const getDiscoverMovies = async (page = 1) => {
   }
 };
 
+const getPopularMovies = async (page = 1) => {
+  try {
+    const cacheKey = `popular-movies-${page}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/best-selling-porn-movies.html?page=${page}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    const results = [];
+    const total_results = $(".list-page__results strong").text().replace(/,/g, "");
+    const total_pages = $(
+      '.pagination li a[aria-label="Go to Last Page"]'
+    )
+      .text()
+      .trim()
+      .replace(/,/g, "");
+
+    $(".grid-item").each((index, element) => {
+      const anchorTag = $(element).find(".product-details__item-title a");
+      const href = anchorTag.attr("href");
+      const title = anchorTag.text().trim();
+
+      const movieID = href ? href.split("/")[1] : "";
+      const poster_url = $(element).find(".boxcover-container img").attr("src") || "";
+      const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+
+      results.push({ id: movieID, original_title: title, poster_path, poster_url, title });
+    });
+
+    const popularData = { page, results, total_results, total_pages };
+    cache.set(cacheKey, popularData);
+    return { source: "live", ...popularData };
+  } catch (error) {
+    console.error("Error getting popular movies:", error);
+    return null;
+  }
+};
+
 const getConfiguration = async () => {
   try {
 
@@ -415,6 +457,13 @@ app.get("/discover/movie", async (req, res) => {
   const result = await getDiscoverMovies(page);
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch discover movies" });
+});
+
+app.get("/movie/popular", async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+  const result = await getPopularMovies(page);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch popular movies" });
 });
 
 app.get("/configuration", async (req, res) => {
