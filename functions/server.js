@@ -3,11 +3,11 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const NodeCache = require("node-cache");
 const serverless = require("serverless-http");
-// const cors = require("cors");
+const cors = require("cors");
 const app = express();
 
 // Enable CORS for all origins
-// app.use(cors());
+app.use(cors());
 
 const cache = new NodeCache({ stdTTL: 604800 }); // Cache for 7 days
 const proxy = `https://adultempire.lustycodes.workers.dev/?url=`;
