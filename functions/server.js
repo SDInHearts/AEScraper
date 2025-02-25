@@ -425,6 +425,13 @@ const getMovieGenreList = async () => {
 // });
 
 // Route using URL parameter
+app.get("/movie/popular", async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+  const result = await getPopularMovies(page);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch popular movies" });
+});
+
 app.get("/movie/:id", async (req, res) => {
   const { id } = req.params;
   if (!id) return res.status(400).json({ error: "Movie ID is required" });
@@ -457,13 +464,6 @@ app.get("/discover/movie", async (req, res) => {
   const result = await getDiscoverMovies(page);
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch discover movies" });
-});
-
-app.get("/movie/popular", async (req, res) => {
-  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
-  const result = await getPopularMovies(page);
-  if (result) return res.json(result);
-  return res.status(500).json({ error: "Failed to fetch popular movies" });
 });
 
 app.get("/configuration", async (req, res) => {
