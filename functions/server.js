@@ -406,6 +406,7 @@ const getPopularPersons = async (page = 1) => {
     $('#performerlist .col-xs-6').each((index, element) => {
         const anchor = $(element).find('a');
         const title = anchor.attr('label');
+        const original_title = anchor.attr('label');
         const idMatch = anchor.attr('href').match(/\/(\d+)\//);
         const id = idMatch ? idMatch[1] : null;
 
@@ -417,7 +418,7 @@ const getPopularPersons = async (page = 1) => {
         ? `/${id}h.jpg`
         : "";
 
-        results.push({ id, title, profile_url, profile_path });
+        results.push({ id, title, original_title, profile_url, profile_path });
     });
 
     const popularPerson = { page, results, total_results, total_pages };
