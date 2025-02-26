@@ -590,10 +590,11 @@ const getMovieReviews = async (movieID) => {
 
 
     $(".movie-review").each((index, element) => {
-        const reviewer = $(element).find("h5").text().trim().replace(/reviewed by:\s*/, "");
-        const content = $(element).find("h5").next().text().trim();
-
-        results.push({ reviewer, content });
+      const id = index + 1; // Assigning a sequential ID
+      const name = $(element).find("h5").text().trim().replace(/reviewed by:\s*/, "").split("\n")[0].trim();
+      const content = $(element).find("h5").next().text().trim();
+      
+      results.push({ id, name, content });
     });
 
     const id = movieID;
