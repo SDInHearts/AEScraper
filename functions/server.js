@@ -117,8 +117,9 @@ const getMovieInfo = async (movieID) => {
 
     const total_results = results.length;
     const total_pages = 1; // Since we're only scraping one page
+    const pages = 1; // Since we're only scraping one page
 
-    const similar = { pages: 1, results, total_results, total_pages };
+    const similar = { pages, results, total_results, total_pages };
 
     // Extracting cast
     const cast = [];
