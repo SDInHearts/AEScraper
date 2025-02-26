@@ -99,6 +99,27 @@ const getMovieInfo = async (movieID) => {
         backdrops.push({ file_path, file_url });
       }
     });
+    
+    // Extracting similar movies
+    const results = [];
+
+    $('.row.item-grid .col-xs-4.col-sm-4.col-md-2').each((index, element) => {
+        const anchor = $(element).find('a.boxcover.thumb');
+        const img = anchor.find('img');
+
+        const poster_url = img.attr('src');
+        const title = img.attr('title');
+        const href = anchor.attr('href');
+
+        const id = href.match(/\/(\d+)\//)?.[1];
+
+        results.push({ id, title, poster_url });
+    });
+
+    const total_results = results.length;
+    const total_pages = 1; // Since we're only scraping one page
+
+    const similar = { pages = 1, results, total_results, total_pages };
 
     // Extracting cast
     const cast = [];
@@ -110,7 +131,7 @@ const getMovieInfo = async (movieID) => {
       const profile_path = performerId
         ? `/${performerId}h.jpg`
         : "";
-	  const profile_url = performerId
+      const profile_url = performerId
         ? `https://imgs1cdn.adultempire.com/actors/${performerId}h.jpg`
         : "";
       cast.push({
@@ -595,3 +616,49 @@ app.get("/genre/movie/list", async (req, res) => {
 
 // ** Correctly export the Express app for Netlify **
 module.exports.handler = serverless(app);
+
+
+
+
+
+
+
+
+
+
+
+const axios = require('axios');
+const cheerio = require('cheerio');
+
+async function scrapeData(url) {
+    try {
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
+
+        let similar_movies = [];
+
+        $('.row.item-grid .col-xs-4.col-sm-4.col-md-2').each((index, element) => {
+            const anchor = $(element).find('a.boxcover.thumb');
+            const img = anchor.find('img');
+
+            const poster_url = img.attr('src');
+            const title = img.attr('title');
+            const href = anchor.attr('href');
+
+            // Extracting the ID from the URL (e.g., "/700215/pirates-porn-movies.html" -> "700215")
+            const id = href.match(/\/(\d+)\//)?.[1];
+
+            if (poster_url && title && id) {
+                similar_movies.push({ id, title, poster_url });
+            }
+        });
+
+        console.log(similar_movies);
+        return similar_movies;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+// Example usage
+scrapeData('https://example.com/page'); // Replace with the actual URL
