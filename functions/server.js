@@ -324,7 +324,7 @@ const getPopularMovies = async (page = 1) => {
       return { source: "cache", ...cachedData };
     }
 
-    const url = `https://www.adultempire.com/best-selling-porn-movies.html?page=${page}`;
+    const url = `https://www.adultempire.com/all-dvds.html?sort=trending&page=${page}`;
     const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
     const $ = cheerio.load(data);
 
@@ -358,6 +358,93 @@ const getPopularMovies = async (page = 1) => {
     return null;
   }
 };
+
+const getTopRatedMovies = async (page = 1) => {
+  try {
+    const cacheKey = `top-rated-movies-${page}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/all-dvds.html?sort=bestseller_sorts&page=${page}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    const results = [];
+    const total_results = $(".list-page__results strong").text().replace(/,/g, "");
+    const total_pages = $(
+      '.pagination li a[aria-label="Go to Last Page"]'
+    )
+      .text()
+      .trim()
+      .replace(/,/g, "");
+
+    $(".grid-item").each((index, element) => {
+      const anchorTag = $(element).find(".product-details__item-title a");
+      const href = anchorTag.attr("href");
+      const title = anchorTag.text().trim();
+
+      const movieID = href ? href.split("/")[1] : "";
+      const poster_url = $(element).find(".boxcover-container img").attr("src") || "";
+      const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+      const backdrop_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+
+      results.push({ id: movieID, original_title: title, poster_path, poster_url, backdrop_path, title });
+    });
+
+    const popularData = { page, results, total_results, total_pages };
+    cache.set(cacheKey, popularData);
+    return { source: "live", ...popularData };
+  } catch (error) {
+    console.error("Error getting top rated movies:", error);
+    return null;
+  }
+};
+
+const getUpcomingMovies = async (page = 1) => {
+  try {
+    const cacheKey = `upcoming-movies-${page}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/preorder-porn-movies.html?page=${page}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    const results = [];
+    const total_results = $(".list-page__results strong").text().replace(/,/g, "");
+    const total_pages = $(
+      '.pagination li a[aria-label="Go to Last Page"]'
+    )
+      .text()
+      .trim()
+      .replace(/,/g, "");
+
+    $(".grid-item").each((index, element) => {
+      const anchorTag = $(element).find(".product-details__item-title a");
+      const href = anchorTag.attr("href");
+      const title = anchorTag.text().trim();
+
+      const movieID = href ? href.split("/")[1] : "";
+      const poster_url = $(element).find(".boxcover-container img").attr("src") || "";
+      const poster_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+      const backdrop_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+
+      results.push({ id: movieID, original_title: title, poster_path, poster_url, backdrop_path, title });
+    });
+
+    const popularData = { page, results, total_results, total_pages };
+    cache.set(cacheKey, popularData);
+    return { source: "live", ...popularData };
+  } catch (error) {
+    console.error("Error getting upcoming movies:", error);
+    return null;
+  }
+};
+
 
 const getConfiguration = async () => {
   try {
@@ -436,6 +523,23 @@ app.get("/movie/popular", async (req, res) => {
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch popular movies" });
 });
+
+app.get("/movie/top_rated", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+  const result = await getTopRatedMovies(page);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch top rated movies" });
+});
+
+app.get("/movie/upcoming", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+  const result = await getUpcomingMovies(page);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch top rated movies" });
+});
+
 
 app.get("/movie/:id", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
