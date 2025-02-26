@@ -574,6 +574,77 @@ const getMovieGenreList = async () => {
   }
 };
 
+const getMovieReviews = async (movieID) => {
+  try {
+    const cacheKey = `movie-reviews-${movieID}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/${movieID}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    const results = [];
+
+
+    $(".movie-review").each((index, element) => {
+        const reviewer = $(element).find("h5").text().trim().replace(/reviewed by:\s*/, "");
+        const content = $(element).find("h5").next().text().trim();
+
+        results.push({ reviewer, content });
+    });
+
+    const id = movieID;
+    const total_results = results.length;
+    const total_pages = 1;
+
+    const movieReviews = { id, page, results, total_results, total_pages };
+    cache.set(cacheKey, movieReviews);
+    return { source: "live", ...movieReviews };
+  } catch (error) {
+    console.error("Error getting movie reviews:", error);
+    return null;
+  }
+};
+
+const getMovieKeywords = async (movieID) => {
+  try {
+    const cacheKey = `movie-keywords-${movieID}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/${movieID}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    // Extracting keywords
+    const keywords = [];
+    $(".movie-page__content-tags__categories a").each((index, element) => {
+      const href = $(element).attr("href");
+      const name = $(element).text().trim();
+      const id = href ? href.split("/")[1] : "";
+      keywords.push({ id, name });
+    });
+
+    // Movie data object
+    const keywordsData = {
+      id: movieID,
+      keywords,
+    };
+
+    // Store in cache
+    cache.set(movieID, keywordsData);
+    return { source: "live", ...keywordsData };
+  } catch (error) {
+    console.error("Failed to get keywords data:", error);
+    return null;
+  }
+};
+
 
 // /movie?id=
 
@@ -628,6 +699,26 @@ app.get("/movie/:id", async (req, res) => {
   const result = await getMovieInfo(id);
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to scrape movie data" });
+});
+
+app.get("/movie/:id/reviews", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: "Movie ID is required" });
+
+  const result = await getMovieReviews(id);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to scrape movie review" });
+});
+
+app.get("/movie/:id/keywords", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: "Movie ID is required" });
+
+  const result = await getMovieKeywords(id);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to scrape movie keywords" });
 });
 
 app.get("/movie/:id/credits", async (req, res) => {
