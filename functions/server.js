@@ -381,6 +381,51 @@ const getPopularMovies = async (page = 1) => {
   }
 };
 
+const getPopularPersons = async (page = 1) => {
+  try {
+    const cacheKey = `popular-movies-${page}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return { source: "cache", ...cachedData };
+    }
+
+    const url = `https://www.adultempire.com/hottest-pornstars.html?page=${page}`;
+    const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
+    const $ = cheerio.load(data);
+
+    const results = [];
+    const total_results = $(".sub strong").text().replace(/,/g, "");
+    const total_pages = $(
+      '.pagination li a[aria-label="Go to Last Page"]'
+    )
+      .text()
+      .trim()
+      .replace(/,/g, "");
+
+
+    $('#performerlist .col-xs-6').each((index, element) => {
+        const anchor = $(element).find('a');
+        const title = anchor.attr('label');
+        const idMatch = anchor.attr('href').match(/\/(\d+)\//);
+        const id = idMatch ? idMatch[1] : null;
+
+        // Extracting the highest resolution poster image from <picture>
+        const profile_url = $(element).find('picture source').first().attr('srcset') 
+                       || $(element).find('picture img').attr('src');
+        const profile_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+
+        results.push({ id, title, profile_url, profile_path });
+    });
+
+    const popularPerson = { page, results, total_results, total_pages };
+    cache.set(cacheKey, popularPerson);
+    return { source: "live", ...popularPerson };
+  } catch (error) {
+    console.error("Error getting popular persons:", error);
+    return null;
+  }
+};
+
 const getTopRatedMovies = async (page = 1) => {
   try {
     const cacheKey = `top-rated-movies-${page}`;
@@ -544,6 +589,14 @@ app.get("/movie/popular", async (req, res) => {
   const result = await getPopularMovies(page);
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch popular movies" });
+});
+
+app.get("/person/popular", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
+  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+  const result = await getPopularPersons(page);
+  if (result) return res.json(result);
+  return res.status(500).json({ error: "Failed to fetch popular persons" });
 });
 
 app.get("/movie/top_rated", async (req, res) => {
