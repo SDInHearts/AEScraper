@@ -3,11 +3,11 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const NodeCache = require("node-cache");
 const serverless = require("serverless-http");
-const cors = require("cors");
+// const cors = require("cors");
 const app = express();
 
 // Enable CORS for all origins
-app.use(cors());
+// app.use(cors());
 
 const cache = new NodeCache({ stdTTL: 604800 }); // Cache for 7 days
 const proxy = `https://adultempire.lustycodes.workers.dev/?url=`;
@@ -430,6 +430,7 @@ const getMovieGenreList = async () => {
 
 // Route using URL parameter
 app.get("/movie/popular", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
   const result = await getPopularMovies(page);
   if (result) return res.json(result);
@@ -437,6 +438,7 @@ app.get("/movie/popular", async (req, res) => {
 });
 
 app.get("/movie/:id", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const { id } = req.params;
   if (!id) return res.status(400).json({ error: "Movie ID is required" });
 
@@ -446,6 +448,7 @@ app.get("/movie/:id", async (req, res) => {
 });
 
 app.get("/movie/:id/credits", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const { id } = req.params;
   if (!id) return res.status(400).json({ error: "Movie ID is required" });
 
@@ -455,6 +458,7 @@ app.get("/movie/:id/credits", async (req, res) => {
 });
 
 app.get("/person/:id", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const { id } = req.params;
   if (!id) return res.status(400).json({ error: "Person ID is required" });
 
@@ -464,6 +468,7 @@ app.get("/person/:id", async (req, res) => {
 });
 
 app.get("/discover/movie", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
   const result = await getDiscoverMovies(page);
   if (result) return res.json(result);
@@ -471,12 +476,14 @@ app.get("/discover/movie", async (req, res) => {
 });
 
 app.get("/configuration", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const result = await getConfiguration();
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch configuration" });
 });
 
 app.get("/genre/movie/list", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all domains
   const result = await getMovieGenreList();
   if (result) return res.json(result);
   return res.status(500).json({ error: "Failed to fetch Movie Genre List" });
