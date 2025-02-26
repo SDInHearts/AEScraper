@@ -582,7 +582,7 @@ const getMovieReviews = async (movieID) => {
       return { source: "cache", ...cachedData };
     }
 
-    const url = `https://www.adultempire.com/${movieID}`;
+    const url = `https://www.adultdvdempire.com/${movieID}/load-reviews.html`;
     const { data } = await axios.get(`${proxy}${encodeURIComponent(url)}`);
     const $ = cheerio.load(data);
 
