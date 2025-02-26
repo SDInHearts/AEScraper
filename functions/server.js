@@ -592,7 +592,8 @@ const getMovieReviews = async (movieID) => {
     $(".movie-review").each((index, element) => {
       const id = index + 1; // Assigning a sequential ID
       const name = $(element).find("h5").text().trim().replace(/reviewed by:\s*/, "").split("\n")[0].trim();
-      const content = $(element).find("h5").next().text().trim();
+      // const content = $(element).find("h5").next().text().trim();
+       const content = $(element).find("h5").nextAll().not("div, h5").text().trim();
       
       results.push({ id, name, content });
     });
