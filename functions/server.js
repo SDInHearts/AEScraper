@@ -599,6 +599,7 @@ const getMovieReviews = async (movieID) => {
     const id = movieID;
     const total_results = results.length;
     const total_pages = '1';
+    const page = '1';
 
     const movieReviews = { id, page, results, total_results, total_pages };
     cache.set(cacheKey, movieReviews);
