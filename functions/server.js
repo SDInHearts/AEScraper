@@ -383,7 +383,7 @@ const getPopularMovies = async (page = 1) => {
 
 const getPopularPersons = async (page = 1) => {
   try {
-    const cacheKey = `popular-movies-${page}`;
+    const cacheKey = `popular-persons-${page}`;
     const cachedData = cache.get(cacheKey);
     if (cachedData) {
       return { source: "cache", ...cachedData };
@@ -412,7 +412,7 @@ const getPopularPersons = async (page = 1) => {
         // Extracting the highest resolution poster image from <picture>
         const profile_url = $(element).find('picture source').first().attr('srcset') 
                        || $(element).find('picture img').attr('src');
-        const profile_path = poster_url ? `/${poster_url.split("/")[5]}` : "";
+        const profile_path = profile_url ? `/${profile_url.split("/")[5]}` : "";
 
         results.push({ id, title, profile_url, profile_path });
     });
