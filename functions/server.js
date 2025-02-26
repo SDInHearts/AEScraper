@@ -102,7 +102,6 @@ const getMovieInfo = async (movieID) => {
     
     // Extracting similar movies
     const results = [];
-
     $('.row.item-grid .col-xs-4.col-sm-4.col-md-2').each((index, element) => {
         const anchor = $(element).find('a.boxcover.thumb');
         const img = anchor.find('img');
@@ -182,6 +181,7 @@ const getMovieInfo = async (movieID) => {
       vote_average,
       vote_count,
       images: { backdrops },
+      similar,
       cast,
       crew,
     };
