@@ -106,7 +106,7 @@ const getMovieInfo = async (movieID) => {
         const anchor = $(element).find('a.boxcover.thumb');
         const img = anchor.find('img');
 
-        const poster_url = img.attr('src');
+        const poster_url = img.attr('data-src');
         const title = img.attr('title');
         const href = anchor.attr('href');
 
