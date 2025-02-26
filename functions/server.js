@@ -598,14 +598,15 @@ const getMovieReviews = async (movieID) => {
 
     const id = movieID;
     const total_results = results.length;
-    const total_pages = 1;
+    const total_pages = '1';
 
     const movieReviews = { id, page, results, total_results, total_pages };
     cache.set(cacheKey, movieReviews);
     return { source: "live", ...movieReviews };
   } catch (error) {
-    console.error("Error getting movie reviews:", error);
-    return null;
+    // console.error("Error getting movie reviews:", error);
+    // return null;
+    return { ...movieReviews };
   }
 };
 
@@ -640,8 +641,9 @@ const getMovieKeywords = async (movieID) => {
     cache.set(movieID, keywordsData);
     return { source: "live", ...keywordsData };
   } catch (error) {
-    console.error("Failed to get keywords data:", error);
-    return null;
+    // console.error("Failed to get keywords data:", error);
+    // return null;
+    return { ...keywordsData };
   }
 };
 
